@@ -12,13 +12,9 @@ defmodule Solution do
   def draw(opponent), do: Map.get(%{"A" => "X", "B" => "Y", "C" => "Z"}, opponent)
 
   def round_score(opponent, self) do
-    conv = %{"X" => "A", "Y" => "B", "Z" => "C"}
-
     cond do
-      opponent == "A" and self == "Y" -> 6
-      opponent == "B" and self == "Z" -> 6
-      opponent == "C" and self == "X" -> 6
-      opponent == Map.get(conv, self, 0) -> 3
+      rem(:binary.first(self) - :binary.first(opponent), 3) == 0 -> 6
+      :binary.first(opponent) == :binary.first(self) - 23 -> 3
       true -> 0
     end
   end
@@ -44,7 +40,7 @@ defmodule Solution do
 
   def main do
     data = input("input.txt")
-    part_one(data) |> IO.inspect()
-    part_two(data) |> IO.inspect()
+    IO.puts "Part one: #{part_one(data)}"
+    IO.puts "Part two: #{part_two(data)}"
   end
 end
