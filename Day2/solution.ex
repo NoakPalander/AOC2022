@@ -29,7 +29,7 @@ defmodule Solution do
     action = %{"X" => &lose/1, "Y" => &draw/1, "Z" => &win/1}
 
     score = fn [o, s] ->
-      condition = Map.get(action, s).(o)
+      condition = apply(Map.get(action, s), [o])
       round_score(o, condition) + Map.get(@scores, condition)
     end
 
