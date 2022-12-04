@@ -4,6 +4,7 @@
 #include <ranges>
 #include <string_view>
 #include <vector>
+#include <span>
 #include <iostream>
 
 namespace stdfs = std::filesystem;
