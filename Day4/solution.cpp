@@ -19,8 +19,8 @@ int input(stdfs::path const& path, int(*part)(range_t, range_t, std::span<int>))
         int a, b, c, d;
         std::sscanf(line.c_str(), "%d-%d,%d-%d", &a, &b, &c, &d);
 
-        auto task1 = std::views::iota(a, b + 1);
-        auto task2 = std::views::iota(c, d + 1);
+        range_t task1 = std::views::iota(a, b + 1);
+        range_t task2 = std::views::iota(c, d + 1);
 
         std::vector<int> intersection;
         stdr::set_intersection(task1, task2, std::back_inserter(intersection));
