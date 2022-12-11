@@ -12,27 +12,23 @@ defmodule Solution do
     |> List.flatten()
   end
 
-  def eval([], _, register), do: Enum.reverse(register) |> Enum.drop(1)
-
-  def eval([v | rest], cycle, register = [{_, top} | _]) when is_integer(v),
-    do: eval(rest, cycle + 1, [{cycle, top + v} | register])
-
-  def eval([_ | rest], cycle, register = [{_, top} | _]),
-    do: eval(rest, cycle + 1, [{cycle, top} | register])
-
   def part_one(data) do
-    eval(data, 2, [{2, 1}])
-    |> Enum.flat_map(fn {idx, val} ->
-      if idx in 20..220//40 do
-        [idx * val]
-      else
-        []
-      end
+    take_or_add = fn
+      x, y when is_integer(y) -> x + y
+      x, _ -> x
+    end
+
+    data
+    |> Enum.with_index(1)
+    |> Enum.map_reduce(1, fn
+      {op, idx}, x when rem(idx, 40) == 20 -> {x * idx, take_or_add.(x, op)}
+      {op, _}, x -> {0, take_or_add.(x, op)}
     end)
+    |> elem(0)
     |> Enum.sum()
   end
 
-  def lit(pos, x), do: if pos in Range.new(x - 1, x + 1), do: '#', else: '.'
+  def lit(pos, x), do: if(pos in Range.new(x - 1, x + 1), do: '#', else: '.')
 
   def process([], x, _, crt), do: {x, Enum.reverse(crt)}
 
