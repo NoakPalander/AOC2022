@@ -1,66 +1,56 @@
 defmodule Solution do
-  def main do
-    data = input("input.txt")
-    IO.puts "Part one: #{part_one(data)}"
-    IO.puts "Part one: #{part_two(data)}"
-  end
-
   def input(filename) do
-      File.read!(filename)
-      |> String.split("\n", trim: true)
-      |> dir()
-      |> Enum.map(fn {folder, files} -> {folder, files |> Map.values() |> Enum.sum()} end)
-      |> folder_sizes()
+    File.read!(filename)
+    |> String.split("\n", trim: true)
+    |> dir()
+    |> Enum.map(fn {folder, files} -> {folder, files |> Map.values() |> Enum.sum()} end)
+    |> folder_sizes()
   end
 
-  defp folder_sizes(folder_structure),
-    do:
-      folder_structure
-      |> Enum.map(fn {folder, total_size} ->
-        subfolder_size =
-          folder_structure
-          |> Enum.filter(&String.ends_with?(elem(&1, 0), folder))
-          |> Enum.filter(&(elem(&1, 0) != folder))
-          |> Map.new()
-          |> Map.values()
-          |> Enum.sum()
+  defp folder_sizes(folders) do
+    folders
+    |> Enum.map(fn {folder, total} ->
+      sub_size =
+        folders
+        |> Enum.filter(&String.ends_with?(elem(&1, 0), folder))
+        |> Enum.filter(&(elem(&1, 0) != folder))
+        |> Map.new()
+        |> Map.values()
+        |> Enum.sum()
 
-        subfolder_size + total_size
-      end)
+      sub_size + total
+    end)
+  end
 
-  defp build_breadcrumbs(directories), do: directories |> Enum.join("-")
+  def dir(commands) do
+    dir(commands, %{}, [])
+  end
 
-  defp dir(commands), do: dir(commands, %{}, [])
+  def dir([], structure, _), do: structure
 
-  defp dir([], structure, _), do: structure
+  def dir(["$ cd .." | rest], structure, [_ | previous_directories]) do
+    dir(rest, structure, previous_directories)
+  end
 
-  defp dir(["$ cd .." | rest], structure, [_ | previous_directories]),
-    do: dir(rest, structure, previous_directories)
+  def dir(["$ cd " <> directory | rest], structure, directories) do
+    dir(rest, structure, [directory | directories])
+  end
 
-  defp dir(["$ cd " <> directory | rest], structure, directories),
-    do: dir(rest, structure, [directory | directories])
+  def dir(["$ ls" | rest], structure, dirs) do
+    dir(rest, Map.put_new(structure, Enum.join(dirs, "-"), %{}), dirs)
+  end
 
-  defp dir(["$ ls" | rest], structure, directories),
-    do:
-      dir(
-        rest,
-        structure |> Map.put_new(build_breadcrumbs(directories), %{}),
-        directories
-      )
+  def dir(["dir " <> _ | rest], structure, directories) do
+    dir(rest, structure, directories)
+  end
 
-  defp dir(["dir " <> _ | rest], structure, directories),
-    do: dir(rest, structure, directories)
-
-  defp dir([file | rest], structure, directories) do
-    [file_size, file_name] = file |> String.split(" ")
+  def dir([file | rest], structure, dirs) do
+    [size, name] = String.split(file, " ")
 
     dir(
       rest,
-      structure
-      |> Map.update!(build_breadcrumbs(directories), fn old ->
-        old |> Map.put(file_name, file_size |> String.to_integer())
-      end),
-      directories
+      Map.update!(structure, Enum.join(dirs, "-"), &Map.put(&1, name, String.to_integer(size))),
+      dirs
     )
   end
 
@@ -71,9 +61,15 @@ defmodule Solution do
   end
 
   def part_two(data) do
-    sorted_sizes = data |> Enum.sort(:desc)
-    root_size = sorted_sizes |> Enum.at(0)
-    to_remove = abs(70_000_000 - root_size - 30_000_000)
-    sorted_sizes |> Enum.filter(&(&1 >= to_remove)) |> Enum.min()
+    sorted = Enum.sort(data, :desc)
+
+    to_remove = abs(70_000_000 - hd(sorted) - 30_000_000)
+    Enum.filter(sorted, &(&1 >= to_remove)) |> Enum.min()
+  end
+
+  def main do
+    data = input("input.txt")
+    IO.puts("Part one: #{part_one(data)}")
+    IO.puts("Part one: #{part_two(data)}")
   end
 end
